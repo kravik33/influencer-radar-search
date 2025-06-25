@@ -1,4 +1,3 @@
-
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Users, Heart, MessageCircle, MapPin, CheckCircle, Calendar, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,13 @@ import { influencerData } from '@/data/influencers';
 
 const InfluencerProfile = () => {
   const { id } = useParams();
-  const influencer = influencerData.find(inf => inf.id === id);
+  
+  // Find influencer by ID, with fallback to first influencer if ID is invalid
+  const influencer = influencerData.find(inf => inf.id === id) || influencerData[0];
+
+  console.log('Looking for influencer with ID:', id);
+  console.log('Available influencer IDs:', influencerData.map(inf => inf.id));
+  console.log('Found influencer:', influencer);
 
   if (!influencer) {
     return (
