@@ -1,5 +1,7 @@
 
 import { Heart, MessageCircle, Users, MapPin, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { Influencer } from '@/pages/Index';
 
 interface InfluencerCardProps {
@@ -87,12 +89,14 @@ export const InfluencerCard = ({ influencer }: InfluencerCardProps) => {
       </div>
 
       <div className="flex space-x-2">
-        <button className="flex-1 py-2 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium">
-          View Profile
-        </button>
-        <button className="flex-1 py-2 px-4 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
-          Save
-        </button>
+        <Link to={`/influencer/${influencer.id}`} className="flex-1">
+          <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transition-all duration-200 text-sm font-medium">
+            View Profile
+          </Button>
+        </Link>
+        <Button className="flex-1 border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium">
+          Save to Favorites
+        </Button>
       </div>
     </div>
   );

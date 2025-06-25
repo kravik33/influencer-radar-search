@@ -1,5 +1,7 @@
 
 import { Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 interface SearchHeaderProps {
   searchTerm: string;
@@ -16,20 +18,34 @@ export const SearchHeader = ({ searchTerm, setSearchTerm }: SearchHeaderProps) =
               <Search className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                InfluencerHub
-              </h1>
+              <Link to="/">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Zorepad
+                </h1>
+              </Link>
               <p className="text-sm text-gray-600">Find the perfect influencers for your brand</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-4">
-            <button className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors">
-              Sign In
-            </button>
-            <button className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+            <Link to="/saved">
+              <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
+                Saved
+              </Button>
+            </Link>
+            <Link to="/create-campaign">
+              <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
+                Campaigns
+              </Button>
+            </Link>
+            <Link to="/settings">
+              <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
+                Settings
+              </Button>
+            </Link>
+            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transition-all duration-200">
               Start Free Trial
-            </button>
+            </Button>
           </div>
         </div>
         
@@ -37,7 +53,7 @@ export const SearchHeader = ({ searchTerm, setSearchTerm }: SearchHeaderProps) =
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Search influencers by name, handle, or niche..."
+            placeholder="Search influencers by name, handle, or topic..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm text-lg placeholder-gray-500"
