@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Plus, Calendar, Target, ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import { Users, Plus, Calendar, Target, ArrowLeft, Edit, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +20,9 @@ interface Campaign {
   start_date: string;
   end_date: string;
   created_at: string;
+  brief?: string;
+  age_range?: string;
+  gender?: string;
 }
 
 const MyCampaignsContent = () => {
@@ -33,13 +36,19 @@ const MyCampaignsContent = () => {
     if (!user) return;
 
     try {
+      console.log('Fetching campaigns for user:', user.id);
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching campaigns:', error);
+        throw error;
+      }
+      
+      console.log('Campaigns fetched:', data);
       setCampaigns(data || []);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
@@ -54,6 +63,8 @@ const MyCampaignsContent = () => {
   };
 
   const deleteCampaign = async (campaignId: string) => {
+    if (!confirm('Are you sure you want to delete this campaign?')) return;
+
     try {
       const { error } = await supabase
         .from('campaigns')
@@ -83,9 +94,9 @@ const MyCampaignsContent = () => {
   }, [user]);
 
   const filteredCampaigns = campaigns.filter(campaign =>
-    campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    campaign.niche.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    campaign.country.toLowerCase().includes(searchTerm.toLowerCase())
+    campaign.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    campaign.niche?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    campaign.country?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -178,9 +189,12 @@ const MyCampaignsContent = () => {
             {filteredCampaigns.map((campaign) => (
               <div key={campaign.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900 truncate">{campaign.name}</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 truncate">{campaign.name || 'Untitled Campaign'}</h3>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" title="View Details">
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" title="Edit Campaign">
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button 
@@ -188,6 +202,7 @@ const MyCampaignsContent = () => {
                       size="sm"
                       onClick={() => deleteCampaign(campaign.id)}
                       className="text-red-600 border-red-200 hover:bg-red-50"
+                      title="Delete Campaign"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -197,16 +212,18 @@ const MyCampaignsContent = () => {
                 <div className="space-y-3">
                   <div className="flex items-center text-sm text-gray-600">
                     <Target className="w-4 h-4 mr-2" />
-                    <span>{campaign.niche} • {campaign.country}</span>
+                    <span>{campaign.niche || 'No niche specified'} • {campaign.country || 'No country specified'}</span>
                   </div>
 
-                  <div className="flex flex-wrap gap-1">
-                    {campaign.platforms?.map((platform, index) => (
-                      <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                        {platform}
-                      </span>
-                    ))}
-                  </div>
+                  {campaign.platforms && campaign.platforms.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {campaign.platforms.map((platform, index) => (
+                        <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                          {platform}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   {campaign.budget_range && (
                     <div className="text-sm text-gray-600">
@@ -214,10 +231,28 @@ const MyCampaignsContent = () => {
                     </div>
                   )}
 
+                  {campaign.age_range && (
+                    <div className="text-sm text-gray-600">
+                      <strong>Age Range:</strong> {campaign.age_range}
+                    </div>
+                  )}
+
+                  {campaign.gender && (
+                    <div className="text-sm text-gray-600">
+                      <strong>Gender:</strong> {campaign.gender}
+                    </div>
+                  )}
+
                   {campaign.start_date && campaign.end_date && (
                     <div className="flex items-center text-sm text-gray-600">
                       <Calendar className="w-4 h-4 mr-2" />
                       <span>{new Date(campaign.start_date).toLocaleDateString()} - {new Date(campaign.end_date).toLocaleDateString()}</span>
+                    </div>
+                  )}
+
+                  {campaign.brief && (
+                    <div className="text-sm text-gray-600">
+                      <strong>Brief:</strong> {campaign.brief.substring(0, 100)}...
                     </div>
                   )}
 

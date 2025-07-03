@@ -53,6 +53,11 @@ const App = () => (
                 <MyCampaigns />
               </ProtectedRoute>
             } />
+            <Route path="/my-campaigns" element={
+              <ProtectedRoute>
+                <MyCampaigns />
+              </ProtectedRoute>
+            } />
             <Route path="/settings" element={
               <ProtectedRoute>
                 <AccountSettings />
