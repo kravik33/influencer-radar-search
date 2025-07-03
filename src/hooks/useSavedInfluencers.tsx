@@ -91,7 +91,7 @@ export const useSavedInfluencers = () => {
         .select('id')
         .eq('user_id', user.id)
         .eq('influencer_id', influencerId)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         console.log('Influencer already saved');
@@ -173,9 +173,9 @@ export const useSavedInfluencers = () => {
         .select('id')
         .eq('user_id', user.id)
         .eq('influencer_id', influencerId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error checking if saved:', error);
         return false;
       }

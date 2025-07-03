@@ -1,1 +1,8 @@
+
 project_id = "obzhccxrivnrcclsssnh"
+
+[functions.send-notification]
+verify_jwt = false
+
+[functions.bulk-invite-influencers]
+verify_jwt = true

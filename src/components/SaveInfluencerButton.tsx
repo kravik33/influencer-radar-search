@@ -66,7 +66,7 @@ const SaveInfluencerButton = ({ influencerId, className = "" }: SaveInfluencerBu
       variant={isSaved ? "default" : "outline"}
       size="sm"
       onClick={handleSave}
-      disabled={loading}
+      disabled={loading || isSaved}
       className={`${className} ${isSaved ? 'bg-red-500 hover:bg-red-600 text-white' : ''}`}
     >
       <Heart className={`w-4 h-4 mr-1 ${isSaved ? 'fill-white' : ''}`} />
