@@ -60,7 +60,6 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center">
@@ -78,7 +77,6 @@ const Auth = () => {
           </p>
         </div>
 
-        {/* Form */}
         <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -138,7 +136,6 @@ const Auth = () => {
           </div>
         </div>
 
-        {/* Info Box */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start space-x-3">
           <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
           <div className="text-sm text-blue-800">
