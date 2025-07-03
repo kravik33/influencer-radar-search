@@ -14,6 +14,8 @@ import {
 const UserMenu = () => {
   const { user, signOut } = useAuth();
 
+  console.log('UserMenu: Current user:', user?.email || 'Not logged in');
+
   if (!user) {
     return (
       <Link to="/auth">
@@ -37,6 +39,7 @@ const UserMenu = () => {
       <DropdownMenuContent align="end" className="w-56">
         <div className="px-3 py-2">
           <p className="text-sm font-medium">{user.email}</p>
+          <p className="text-xs text-gray-500">Logged in</p>
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>

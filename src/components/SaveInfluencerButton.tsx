@@ -17,13 +17,22 @@ const SaveInfluencerButton = ({ influencerId, className = "" }: SaveInfluencerBu
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user && influencerId) {
-      checkIfSaved(influencerId).then(setIsSaved);
-    }
+    const checkSaved = async () => {
+      if (user && influencerId) {
+        try {
+          const saved = await checkIfSaved(influencerId);
+          setIsSaved(saved);
+        } catch (error) {
+          console.error('Error checking if saved:', error);
+        }
+      }
+    };
+    
+    checkSaved();
   }, [user, influencerId, checkIfSaved]);
 
   const handleSave = async () => {
-    if (loading || !user) return;
+    if (loading || !user || isSaved) return;
     
     setLoading(true);
     try {
@@ -47,7 +56,7 @@ const SaveInfluencerButton = ({ influencerId, className = "" }: SaveInfluencerBu
       className={`${className} ${isSaved ? 'bg-red-500 hover:bg-red-600 text-white' : ''}`}
     >
       <Heart className={`w-4 h-4 mr-1 ${isSaved ? 'fill-white' : ''}`} />
-      {isSaved ? 'Saved' : 'Save'}
+      {loading ? 'Saving...' : (isSaved ? 'Saved' : 'Save')}
     </Button>
   );
 };
