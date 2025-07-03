@@ -26,8 +26,16 @@ export const useSavedInfluencers = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
+  console.log('useSavedInfluencers: current user:', user?.email);
+
   const fetchSavedInfluencers = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user, skipping fetch');
+      setLoading(false);
+      return;
+    }
+
+    console.log('Fetching saved influencers for user:', user.id);
 
     try {
       const { data, error } = await supabase
@@ -49,7 +57,12 @@ export const useSavedInfluencers = () => {
         `)
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching saved influencers:', error);
+        throw error;
+      }
+      
+      console.log('Fetched saved influencers:', data);
       setSavedInfluencers(data as SavedInfluencer[]);
     } catch (error) {
       console.error('Error fetching saved influencers:', error);
@@ -64,7 +77,12 @@ export const useSavedInfluencers = () => {
   };
 
   const saveInfluencer = async (influencerId: string) => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user, cannot save influencer');
+      return;
+    }
+
+    console.log('Saving influencer:', influencerId, 'for user:', user.id);
 
     try {
       // Check if already saved
@@ -76,6 +94,7 @@ export const useSavedInfluencers = () => {
         .single();
 
       if (existing) {
+        console.log('Influencer already saved');
         toast({
           title: "Already saved",
           description: "This influencer is already in your saved list",
@@ -90,13 +109,18 @@ export const useSavedInfluencers = () => {
           influencer_id: influencerId,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving influencer:', error);
+        throw error;
+      }
 
+      console.log('Influencer saved successfully');
       toast({
         title: "Success",
         description: "Influencer saved to your list",
       });
 
+      // Refresh the saved list
       fetchSavedInfluencers();
     } catch (error) {
       console.error('Error saving influencer:', error);
@@ -109,6 +133,8 @@ export const useSavedInfluencers = () => {
   };
 
   const removeSavedInfluencer = async (savedInfluencerId: string) => {
+    console.log('Removing saved influencer:', savedInfluencerId);
+    
     try {
       const { error } = await supabase
         .from('saved_influencers')
@@ -134,18 +160,31 @@ export const useSavedInfluencers = () => {
   };
 
   const checkIfSaved = async (influencerId: string): Promise<boolean> => {
-    if (!user) return false;
+    if (!user) {
+      console.log('No user, returning false for checkIfSaved');
+      return false;
+    }
+
+    console.log('Checking if saved:', influencerId, 'for user:', user.id);
 
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('saved_influencers')
         .select('id')
         .eq('user_id', user.id)
         .eq('influencer_id', influencerId)
         .single();
 
-      return !!data;
-    } catch {
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking if saved:', error);
+        return false;
+      }
+
+      const isSaved = !!data;
+      console.log('checkIfSaved result:', isSaved);
+      return isSaved;
+    } catch (error) {
+      console.error('Error in checkIfSaved:', error);
       return false;
     }
   };

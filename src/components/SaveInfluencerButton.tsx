@@ -16,11 +16,15 @@ const SaveInfluencerButton = ({ influencerId, className = "" }: SaveInfluencerBu
   const { saveInfluencer, checkIfSaved } = useSavedInfluencers();
   const { user } = useAuth();
 
+  console.log('SaveInfluencerButton: user:', user?.email, 'influencerId:', influencerId);
+
   useEffect(() => {
     const checkSaved = async () => {
       if (user && influencerId) {
+        console.log('Checking if influencer is saved:', influencerId);
         try {
           const saved = await checkIfSaved(influencerId);
+          console.log('Is saved result:', saved);
           setIsSaved(saved);
         } catch (error) {
           console.error('Error checking if saved:', error);
@@ -32,12 +36,19 @@ const SaveInfluencerButton = ({ influencerId, className = "" }: SaveInfluencerBu
   }, [user, influencerId, checkIfSaved]);
 
   const handleSave = async () => {
-    if (loading || !user || isSaved) return;
+    console.log('Save button clicked, current state:', { loading, user: !!user, isSaved });
+    
+    if (loading || !user) {
+      console.log('Save blocked: loading or no user');
+      return;
+    }
     
     setLoading(true);
     try {
+      console.log('Attempting to save influencer:', influencerId);
       await saveInfluencer(influencerId);
       setIsSaved(true);
+      console.log('Successfully saved influencer');
     } catch (error) {
       console.error('Error saving influencer:', error);
     } finally {
@@ -45,14 +56,17 @@ const SaveInfluencerButton = ({ influencerId, className = "" }: SaveInfluencerBu
     }
   };
 
-  if (!user) return null;
+  if (!user) {
+    console.log('No user, not rendering save button');
+    return null;
+  }
 
   return (
     <Button
       variant={isSaved ? "default" : "outline"}
       size="sm"
       onClick={handleSave}
-      disabled={loading || isSaved}
+      disabled={loading}
       className={`${className} ${isSaved ? 'bg-red-500 hover:bg-red-600 text-white' : ''}`}
     >
       <Heart className={`w-4 h-4 mr-1 ${isSaved ? 'fill-white' : ''}`} />
