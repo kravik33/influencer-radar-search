@@ -49,7 +49,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    // Use the production domain for email redirects
+    const redirectUrl = window.location.hostname === 'localhost' 
+      ? `${window.location.origin}/`
+      : 'https://zorepad.io/';
     
     const { error } = await supabase.auth.signUp({
       email,
