@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +14,7 @@ import AccountSettings from "./pages/AccountSettings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import MyCampaigns from "./pages/MyCampaigns";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -26,13 +28,36 @@ const App = () => (
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/search" element={<Index />} />
-            <Route path="/influencer/:id" element={<InfluencerProfile />} />
-            <Route path="/create-campaign" element={<CreateCampaign />} />
-            <Route path="/saved" element={<SavedInfluencers />} />
-            <Route path="/campaigns" element={<MyCampaigns />} />
-            <Route path="/settings" element={<AccountSettings />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/search" element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            } />
+            <Route path="/influencer/:id" element={
+              <ProtectedRoute>
+                <InfluencerProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/create-campaign" element={
+              <ProtectedRoute>
+                <CreateCampaign />
+              </ProtectedRoute>
+            } />
+            <Route path="/saved" element={
+              <ProtectedRoute>
+                <SavedInfluencers />
+              </ProtectedRoute>
+            } />
+            <Route path="/campaigns" element={
+              <ProtectedRoute>
+                <MyCampaigns />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <AccountSettings />
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

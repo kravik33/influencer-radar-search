@@ -2,6 +2,7 @@
 import { Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import UserMenu from './UserMenu';
 
 interface SearchHeaderProps {
   searchTerm: string;
@@ -33,19 +34,17 @@ export const SearchHeader = ({ searchTerm, setSearchTerm }: SearchHeaderProps) =
                 Saved
               </Button>
             </Link>
+            <Link to="/campaigns">
+              <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
+                My Campaigns
+              </Button>
+            </Link>
             <Link to="/create-campaign">
               <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
-                Campaigns
+                Create Campaign
               </Button>
             </Link>
-            <Link to="/settings">
-              <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
-                Settings
-              </Button>
-            </Link>
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transition-all duration-200">
-              Start Free Trial
-            </Button>
+            <UserMenu />
           </div>
         </div>
         

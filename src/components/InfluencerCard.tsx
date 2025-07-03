@@ -3,6 +3,7 @@ import { Heart, MessageCircle, Users, MapPin, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Influencer } from '@/pages/Index';
+import SaveInfluencerButton from './SaveInfluencerButton';
 
 interface InfluencerCardProps {
   influencer: Influencer;
@@ -94,9 +95,7 @@ export const InfluencerCard = ({ influencer }: InfluencerCardProps) => {
             View Profile
           </Button>
         </Link>
-        <Button className="flex-1 border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium">
-          Save to Favorites
-        </Button>
+        <SaveInfluencerButton influencerId={influencer.id} className="flex-1" />
       </div>
     </div>
   );
