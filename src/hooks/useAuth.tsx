@@ -28,6 +28,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Handle email confirmation tokens from URL hash
+    const handleAuthTokens = async () => {
+      const url = new URL(window.location.href);
+      const hashParams = new URLSearchParams(url.hash.substring(1));
+      const access_token = hashParams.get('access_token');
+      const refresh_token = hashParams.get('refresh_token');
+
+      if (access_token && refresh_token) {
+        console.log('Found auth tokens in URL, setting session...');
+        try {
+          const { data, error } = await supabase.auth.setSession({
+            access_token,
+            refresh_token
+          });
+          
+          if (error) {
+            console.error('Error setting session from URL tokens:', error);
+          } else {
+            console.log('Successfully set session from URL tokens');
+            // Clear the tokens from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (error) {
+          console.error('Error processing auth tokens:', error);
+        }
+      }
+    };
+
+    // Handle auth tokens first
+    handleAuthTokens();
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
