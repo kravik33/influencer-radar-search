@@ -1,22 +1,23 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Search, Plus, Trash2, MessageCircle } from 'lucide-react';
+import { Users, Search, Trash2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { influencerData } from '@/data/influencers';
+import { useSavedInfluencers } from '@/hooks/useSavedInfluencers';
+import { useAuth } from '@/hooks/useAuth';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import UserMenu from '@/components/UserMenu';
 
-const SavedInfluencers = () => {
+const SavedInfluencersContent = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPlatform, setFilterPlatform] = useState('all');
-  
-  // Mock saved influencers (in real app, this would come from user's saved data)
-  const savedInfluencers = influencerData.slice(0, 6);
+  const { savedInfluencers, loading, removeSavedInfluencer } = useSavedInfluencers();
 
-  const filteredInfluencers = savedInfluencers.filter(influencer => {
+  const filteredInfluencers = savedInfluencers.filter(saved => {
+    const influencer = saved.influencer;
     const matchesSearch = influencer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         influencer.handle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         influencer.niche.toLowerCase().includes(searchTerm.toLowerCase());
+                         influencer.username.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesPlatform = filterPlatform === 'all' || influencer.platform === filterPlatform;
 
@@ -39,32 +40,45 @@ const SavedInfluencers = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading saved influencers...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                <Users className="w-5 h-5 text-white" />
+            <div className="flex items-center space-x-4">
+              <Link to="/search" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors">
+                <ArrowLeft className="w-5 h-5" />
+                <span>Back to Search</span>
+              </Link>
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Zorepad
+                </h1>
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Zorepad
-              </h1>
             </div>
             
             <div className="flex items-center space-x-4">
-              <Link to="/search">
-                <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
-                  Find More
-                </Button>
-              </Link>
               <Link to="/create-campaign">
                 <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transition-all duration-200">
                   Create Campaign
                 </Button>
               </Link>
+              <UserMenu />
             </div>
           </div>
         </div>
@@ -84,7 +98,7 @@ const SavedInfluencers = () => {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
                 type="text"
-                placeholder="Filter saved influencers by platform, country, or tag..."
+                placeholder="Filter saved influencers by name or username..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-12 py-3 text-lg"
@@ -111,7 +125,7 @@ const SavedInfluencers = () => {
           </p>
         </div>
 
-        {/* Influencers Table/Grid */}
+        {/* Influencers Grid */}
         {filteredInfluencers.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 shadow-sm border border-gray-100 text-center">
             <div className="w-24 h-24 bg-gray-100 rounded-full mx-auto mb-6 flex items-center justify-center">
@@ -136,89 +150,67 @@ const SavedInfluencers = () => {
             </Link>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            {/* Table Header */}
-            <div className="hidden md:grid md:grid-cols-12 gap-4 p-6 bg-gray-50 border-b border-gray-200 font-medium text-gray-700">
-              <div className="col-span-4">Name</div>
-              <div className="col-span-2">Platform</div>
-              <div className="col-span-2">Engagement</div>
-              <div className="col-span-2">Notes</div>
-              <div className="col-span-2">Actions</div>
-            </div>
-
-            {/* Table Body */}
-            <div className="divide-y divide-gray-200">
-              {filteredInfluencers.map((influencer) => (
-                <div key={influencer.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                    {/* Name */}
-                    <div className="col-span-1 md:col-span-4">
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={influencer.avatar}
-                          alt={influencer.name}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                        <div>
-                          <Link 
-                            to={`/influencer/${influencer.id}`}
-                            className="font-semibold text-gray-900 hover:text-blue-600 transition-colors"
-                          >
-                            {influencer.name}
-                          </Link>
-                          <p className="text-sm text-gray-600">@{influencer.handle}</p>
-                          <p className="text-sm text-gray-500 md:hidden">{formatNumber(influencer.followers)} followers</p>
-                        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredInfluencers.map((saved) => {
+              const influencer = saved.influencer;
+              return (
+                <div key={saved.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={influencer.avatar_url || "/placeholder.svg"}
+                        alt={influencer.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{influencer.name}</h3>
+                        <p className="text-sm text-gray-600">@{influencer.username}</p>
                       </div>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeSavedInfluencer(saved.id)}
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
 
-                    {/* Platform */}
-                    <div className="col-span-1 md:col-span-2">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
                       <span className={`inline-block px-3 py-1 rounded-full text-white text-sm font-medium ${getPlatformColor(influencer.platform)}`}>
                         {influencer.platform}
                       </span>
+                      <span className="text-sm text-gray-600">{influencer.country}</span>
                     </div>
 
-                    {/* Engagement */}
-                    <div className="col-span-1 md:col-span-2">
-                      <div className="text-sm">
-                        <div className="font-semibold text-gray-900">{influencer.engagementRate}%</div>
-                        <div className="text-gray-600">{formatNumber(influencer.followers)} followers</div>
+                    <div className="flex justify-between text-sm">
+                      <div>
+                        <span className="text-gray-600">Followers:</span>
+                        <span className="font-semibold ml-1">{formatNumber(influencer.followers)}</span>
                       </div>
-                    </div>
-
-                    {/* Notes */}
-                    <div className="col-span-1 md:col-span-2">
-                      <span className="text-sm text-gray-600 italic">High quality content</span>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="col-span-1 md:col-span-2">
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs px-3 py-1"
-                        >
-                          <Plus className="w-3 h-3 mr-1" />
-                          Add to Campaign
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 border-red-200 hover:bg-red-50 text-xs px-3 py-1"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
+                      <div>
+                        <span className="text-gray-600">Engagement:</span>
+                        <span className="font-semibold ml-1">{influencer.engagement_rate}%</span>
                       </div>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         )}
       </div>
     </div>
+  );
+};
+
+const SavedInfluencers = () => {
+  return (
+    <ProtectedRoute>
+      <SavedInfluencersContent />
+    </ProtectedRoute>
   );
 };
 

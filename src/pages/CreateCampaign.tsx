@@ -1,12 +1,18 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Users, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import UserMenu from '@/components/UserMenu';
 
-const CreateCampaign = () => {
+const CreateCampaignContent = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [campaignData, setCampaignData] = useState({
     name: '',
     country: '',
@@ -16,9 +22,15 @@ const CreateCampaign = () => {
     startDate: '',
     endDate: '',
     budgetRange: '',
-    influencerAge: '',
-    stopWords: ''
+    ageRange: '',
+    gender: '',
+    stopWords: '',
+    brief: ''
   });
+
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const countries = ['United States', 'United Kingdom', 'Canada', 'Australia', 'Germany', 'France', 'Spain', 'Italy'];
   const niches = ['Fashion', 'Tech', 'Food', 'Travel', 'Fitness', 'Beauty', 'Gaming', 'Lifestyle'];
@@ -26,6 +38,7 @@ const CreateCampaign = () => {
   const contentTypes = ['Story', 'Post', 'Video', 'Reel', 'Short'];
   const budgetRanges = ['$1,000 - $5,000', '$5,000 - $10,000', '$10,000 - $25,000', '$25,000 - $50,000', '$50,000+'];
   const ageRanges = ['18-24', '25-34', '35-44', '45-54', '55+'];
+  const genderOptions = ['Any', 'Male', 'Female', 'Other'];
 
   const handlePlatformToggle = (platform: string) => {
     setCampaignData(prev => ({
@@ -53,10 +66,64 @@ const CreateCampaign = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
-  const handleSubmit = () => {
-    console.log('Campaign created:', campaignData);
-    // Here you would typically send the data to your backend
-    alert('Campaign created successfully!');
+  const generateBrief = () => {
+    const brief = `Campaign Brief for ${campaignData.name}
+
+Target Market: ${campaignData.country}
+Niche: ${campaignData.niche}
+Platforms: ${campaignData.platforms.join(', ')}
+Content Types: ${campaignData.contentTypes.join(', ')}
+Budget: ${campaignData.budgetRange}
+Duration: ${campaignData.startDate} to ${campaignData.endDate}
+Target Age: ${campaignData.ageRange}
+Gender: ${campaignData.gender}
+
+${campaignData.stopWords ? `Stop Words: ${campaignData.stopWords}` : ''}
+
+This campaign aims to connect with influencers in the ${campaignData.niche} space to create engaging content that resonates with our target audience in ${campaignData.country}.`;
+
+    setCampaignData(prev => ({ ...prev, brief }));
+  };
+
+  const handleSubmit = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.from('campaigns').insert({
+        user_id: user.id,
+        name: campaignData.name,
+        country: campaignData.country,
+        niche: campaignData.niche,
+        platforms: campaignData.platforms,
+        post_types: campaignData.contentTypes,
+        start_date: campaignData.startDate,
+        end_date: campaignData.endDate,
+        budget_range: campaignData.budgetRange,
+        age_range: campaignData.ageRange,
+        gender: campaignData.gender,
+        stop_words: campaignData.stopWords,
+        brief: campaignData.brief,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Campaign created successfully!",
+      });
+
+      navigate('/campaigns');
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create campaign",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,6 +145,8 @@ const CreateCampaign = () => {
                 Zorepad
               </h1>
             </div>
+
+            <UserMenu />
           </div>
         </div>
       </header>
@@ -101,7 +170,7 @@ const CreateCampaign = () => {
           {/* Step 1: Campaign Basics */}
           {currentStep === 1 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Name Your Campaign</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Campaign Basics</h2>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Campaign Name</label>
@@ -143,10 +212,10 @@ const CreateCampaign = () => {
             </div>
           )}
 
-          {/* Step 2: Platforms & Content */}
+          {/* Step 2: Target Criteria */}
           {currentStep === 2 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Choose Platforms & Content Types</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Target Criteria</h2>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-4">Platforms</label>
@@ -195,13 +264,68 @@ const CreateCampaign = () => {
                   ))}
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Budget Range</label>
+                  <select
+                    value={campaignData.budgetRange}
+                    onChange={(e) => setCampaignData(prev => ({ ...prev, budgetRange: e.target.value }))}
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select budget range...</option>
+                    {budgetRanges.map(range => (
+                      <option key={range} value={range}>{range}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Age Range</label>
+                  <select
+                    value={campaignData.ageRange}
+                    onChange={(e) => setCampaignData(prev => ({ ...prev, ageRange: e.target.value }))}
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select age range...</option>
+                    {ageRanges.map(age => (
+                      <option key={age} value={age}>{age}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                <select
+                  value={campaignData.gender}
+                  onChange={(e) => setCampaignData(prev => ({ ...prev, gender: e.target.value }))}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select gender...</option>
+                  {genderOptions.map(gender => (
+                    <option key={gender} value={gender}>{gender}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Stop Words (optional)</label>
+                <Input
+                  value={campaignData.stopWords}
+                  onChange={(e) => setCampaignData(prev => ({ ...prev, stopWords: e.target.value }))}
+                  placeholder="Enter words to avoid, separated by commas..."
+                  className="w-full"
+                />
+                <p className="text-sm text-gray-500 mt-1">Words or topics that influencers should avoid in their content</p>
+              </div>
             </div>
           )}
 
-          {/* Step 3: Campaign Details */}
+          {/* Step 3: Campaign Details & Brief */}
           {currentStep === 3 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Define Campaign Scope</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Campaign Timeline & Brief</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -226,42 +350,24 @@ const CreateCampaign = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Budget Range</label>
-                <select
-                  value={campaignData.budgetRange}
-                  onChange={(e) => setCampaignData(prev => ({ ...prev, budgetRange: e.target.value }))}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select budget range...</option>
-                  {budgetRanges.map(range => (
-                    <option key={range} value={range}>{range}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Influencer Age</label>
-                <select
-                  value={campaignData.influencerAge}
-                  onChange={(e) => setCampaignData(prev => ({ ...prev, influencerAge: e.target.value }))}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select age range...</option>
-                  {ageRanges.map(age => (
-                    <option key={age} value={age}>{age}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Stop Words (optional)</label>
-                <Input
-                  value={campaignData.stopWords}
-                  onChange={(e) => setCampaignData(prev => ({ ...prev, stopWords: e.target.value }))}
-                  placeholder="Enter words to avoid, separated by commas..."
-                  className="w-full"
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">Campaign Brief</label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generateBrief}
+                    className="text-sm"
+                  >
+                    Auto-Generate Brief
+                  </Button>
+                </div>
+                <textarea
+                  value={campaignData.brief}
+                  onChange={(e) => setCampaignData(prev => ({ ...prev, brief: e.target.value }))}
+                  placeholder="Enter campaign brief or click 'Auto-Generate Brief' to create one based on your inputs..."
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[200px]"
                 />
-                <p className="text-sm text-gray-500 mt-1">Words or topics that influencers should avoid in their content</p>
               </div>
             </div>
           )}
@@ -281,13 +387,18 @@ const CreateCampaign = () => {
             {currentStep === 3 ? (
               <Button
                 onClick={handleSubmit}
+                disabled={loading || !campaignData.name || !campaignData.country || !campaignData.niche}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 text-white flex items-center space-x-2"
               >
-                <span>Create Campaign</span>
+                <span>{loading ? 'Creating...' : 'Create Campaign'}</span>
               </Button>
             ) : (
               <Button
                 onClick={nextStep}
+                disabled={
+                  currentStep === 1 ? !campaignData.name || !campaignData.country || !campaignData.niche :
+                  currentStep === 2 ? campaignData.platforms.length === 0 || campaignData.contentTypes.length === 0 : false
+                }
                 className="bg-gradient-to-r from-purple-600 to-blue-600 text-white flex items-center space-x-2"
               >
                 <span>Next</span>
@@ -298,6 +409,14 @@ const CreateCampaign = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const CreateCampaign = () => {
+  return (
+    <ProtectedRoute>
+      <CreateCampaignContent />
+    </ProtectedRoute>
   );
 };
 

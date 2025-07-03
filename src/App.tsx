@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +12,7 @@ import SavedInfluencers from "./pages/SavedInfluencers";
 import AccountSettings from "./pages/AccountSettings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import MyCampaigns from "./pages/MyCampaigns";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +30,7 @@ const App = () => (
             <Route path="/influencer/:id" element={<InfluencerProfile />} />
             <Route path="/create-campaign" element={<CreateCampaign />} />
             <Route path="/saved" element={<SavedInfluencers />} />
+            <Route path="/campaigns" element={<MyCampaigns />} />
             <Route path="/settings" element={<AccountSettings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

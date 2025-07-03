@@ -47,8 +47,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error('Error setting session from URL tokens:', error);
           } else {
             console.log('Successfully set session from URL tokens');
-            // Clear the tokens from URL
-            window.history.replaceState({}, document.title, window.location.pathname);
+            // Clear the tokens from URL and redirect to dashboard
+            window.history.replaceState({}, document.title, '/search');
+            window.location.href = '/search';
           }
         } catch (error) {
           console.error('Error processing auth tokens:', error);

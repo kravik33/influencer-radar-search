@@ -2,7 +2,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { User, LogOut, Settings, Heart } from 'lucide-react';
+import { User, LogOut, Settings, Heart, Target } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +39,12 @@ const UserMenu = () => {
           <p className="text-sm font-medium">{user.email}</p>
         </div>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/campaigns" className="flex items-center">
+            <Target className="w-4 h-4 mr-2" />
+            My Campaigns
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link to="/saved" className="flex items-center">
             <Heart className="w-4 h-4 mr-2" />
